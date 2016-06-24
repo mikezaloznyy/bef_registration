@@ -203,4 +203,10 @@ jQuery(document).ready(function($){
     
         return $total.toFixed(2);
     }
+    
+    $(window).bind("pageshow", function() {
+        var form = $('form.bef-form'); 
+        // let the browser natively reset defaults
+        form[0].reset();
+    });
 });
