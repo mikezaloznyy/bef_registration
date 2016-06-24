@@ -58,6 +58,7 @@ Text Domain: BEF Registration
        6.4 - bef_return_json()
        6.5 - bef_get_acf_key()
        6.6 - bef_get_registrant_data()
+       6.7 - charge_credit_card()
        
 	7. CUSTOM POST TYPES
 	   7.1 - registrants
@@ -726,26 +727,35 @@ function bef_save_registrant( $registrant_data ) {
         $payment_status = 'payment declined';
         if($registrant_data['bef_split_payment'] == 'full_amount'){
             // run credit card transaction
-            $response = charge_credit_card($registrant_data['total-amount'], 
+            $payment_status = charge_credit_card($registrant_data['total-amount'], 
                                            $registrant_data['bef_cc_num'],
                                            $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
                                            $registrant_data['bef_cc_code']
                                           );
-            if ($response != null){
-                $tresponse = $response->getTransactionResponse();  
-                if (($tresponse != null) && ($tresponse->getResponseCode()== \SampleCode\Constants::RESPONSE_OK) ) {
-                    $payment_status = $tresponse->getAuthCode() . " " . $tresponse->getTransId();
-                }
-                else {
-                    $payment_status = "Charge Credit Card ERROR :  Invalid response\n";
-                }
-            }
-            else {
-                $payment_status = "Charge Credit card Null response returned";
-            }
         }
         else {
             // run subscription
+                // charge credit card for 1/nth of the amount
+                $interval_length = (int)$registrant_data['bef_split_payment'];
+                $partial_payment = $registrant_data['total-amount'] /  $interval_length;
+              
+                $payment_status = charge_credit_card($partial_payment, 
+                                           $registrant_data['bef_cc_num'],
+                                           $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
+                                           $registrant_data['bef_cc_code']
+                                          );
+                // establish subscription
+                $pos = strpos($payment_status, 'ERROR');
+                
+                if( $pos === false){
+                    $payment_status = create_subscription($partial_payment, 
+                                           $registrant_data['bef_cc_num'],
+                                           $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
+                                           $registrant_data['bef_cc_code'],
+                                           $interval_length - 1
+                                          );
+                }
+                
         }
         
 		// add/update custom meta data
@@ -1132,9 +1142,83 @@ function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code){
     $controller = new AnetController\CreateTransactionController($request);
     $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);
     
-    return $response;
+    if ($response != null){
+        $tresponse = $response->getTransactionResponse();  
+        if (($tresponse != null) && ($tresponse->getResponseCode()== \SampleCode\Constants::RESPONSE_OK) ) {
+            $payment_status = $tresponse->getAuthCode() . " " . $tresponse->getTransId();
+        }
+        else {
+            $payment_status = "ERROR: Charge Credit Card ERROR :  Invalid response\n";
+        }
+     }
+     else {
+        $payment_status = "ERROR: Charge Credit card Null response returned";
+    }
+    return $payment_status;
 }
 
+function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_length){
+    // Common Set Up for API Credentials
+    $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+    $merchantAuthentication->setName(\SampleCode\Constants::MERCHANT_LOGIN_ID);
+    $merchantAuthentication->setTransactionKey(\SampleCode\Constants::MERCHANT_TRANSACTION_KEY);
+    
+    $refId = 'ref' . time();
+    
+     // Subscription Type Info
+    $subscription = new AnetAPI\ARBSubscriptionType();
+    $subscription->setName("BEF Payment Subscription");
+    
+    $interval = new AnetAPI\PaymentScheduleType\IntervalAType();
+    $interval->setLength(12);
+    $interval->setUnit("months");
+    
+    $paymentSchedule = new AnetAPI\PaymentScheduleType();
+    $paymentSchedule->setInterval($interval);
+    $paymentSchedule->setStartDate(new DateTime(date('Y-m-d', strtotime('first day next month'))));
+    $paymentSchedule->setTotalOccurrences($interval_length);
+    $paymentSchedule->setTrialOccurrences("0");
+                                          
+    $subscription->setPaymentSchedule($paymentSchedule);
+    $subscription->setAmount($amount);
+    $subscription->setTrialAmount("0");                                      
+
+    $creditCard = new AnetAPI\CreditCardType();
+    $creditCard->setCardNumber($cc_num);
+    $creditCard->setExpirationDate($cc_exp);
+    //$creditCard->setCardCode($cc_code);
+    
+    $payment = new AnetAPI\PaymentType();
+    $payment->setCreditCard($creditCard);
+
+    $subscription->setPayment($payment);
+    
+    $billTo = new AnetAPI\NameAndAddressType();
+    $billTo->setFirstName("BEF");
+    $billTo->setLastName("Attendee");
+    
+    $subscription->setBillTo($billTo);
+
+    $request = new AnetAPI\ARBCreateSubscriptionRequest();
+    $request->setmerchantAuthentication($merchantAuthentication);
+    $request->setRefId($refId);
+    $request->setSubscription($subscription);
+    $controller = new AnetController\ARBCreateSubscriptionController($request);
+
+    $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);   
+    if (($response != null) && ($response->getMessages()->getResultCode() == "Ok") )
+    {
+        $payment_status = "SUCCESS: Subscription ID : " . $response->getSubscriptionId() . "\n";
+     }
+    else
+    {
+        $payment_status = "ERROR :  Invalid response\n";
+        $errorMessages = $response->getMessages()->getMessage();
+        $payment_status .= "Response : " . $errorMessages[0]->getCode() . "  " .$errorMessages[0]->getText() . "\n";
+    }
+
+    return $payment_status;
+}
 /* !7. CUSTOM POST TYPES */
 
 // 7.1
