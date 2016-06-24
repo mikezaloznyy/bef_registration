@@ -1,4 +1,11 @@
 <?php
+
+require 'vendor/autoload.php';
+use net\authorize\api\contract\v1 as AnetAPI;
+use net\authorize\api\controller as AnetController;
+date_default_timezone_set('America/Los_Angeles');
+define("AUTHORIZENET_LOG_FILE", "phplog");
+
 /*
 Plugin Name: BEF Registration
 Plugin URI: http://www.thebusinessexcellenceforums.com/
@@ -21,6 +28,7 @@ Text Domain: BEF Registration
        1.3 - register custom admin column data
        1.4 - register ajax actions
        1.5 - load external files to public website
+       1.6 - Advanced Custom Fields Settings
        
 	2. SHORTCODES
        2.1 - bef_register_shortcodes()
@@ -35,7 +43,8 @@ Text Domain: BEF Registration
        3.4 - bef_event_column_data()
        
 	4. EXTERNAL SCRIPTS
-       4.1 - bef_public_scripts()
+       4.1 - include advanced-custom-fields
+       4.2 - bef_public_scripts()
         
 	5. ACTIONS
        5.1 - bef_save_registration()
@@ -51,7 +60,8 @@ Text Domain: BEF Registration
        6.6 - bef_get_registrant_data()
        
 	7. CUSTOM POST TYPES
-	
+	   7.1 - registrants
+       
 	8. ADMIN PAGES
 	
 	9. SETTINGS
@@ -88,6 +98,15 @@ add_action('wp_ajax_bef_save_registration', 'bef_save_registration'); // admin u
 // load external files to public website
 add_action('wp_enqueue_scripts', 'bef_public_scripts');
 
+// 1.6
+// Advanced Custom Fields Settings
+/*
+add_filter('acf/settings/path', 'bef_acf_settings_path');
+add_filter('acf/settings/dir', 'bef_acf_settings_dir');
+add_filter('acf/settings/show_admin', 'bef_acf_show_admin');
+//if( !defined('ACF_LITE') ) define('ACF_LITE',true); // turn off ACF plugin menu
+*/
+
 /* !2. SHORTCODES */
 
 // 2.1
@@ -112,7 +131,7 @@ function bef_form_shortcode( $args, $content="") {
 	// setup our output variable - the form html 
 	$output = '
 	
-		<div class="bef">
+		<div class="bef" id="wrap-form-div">
 			<form id="bef_form" name="bef_form" class="bef-form" method="post" action="/wordpress-plugin-dev/wp-admin/admin-ajax.php?action=bef_save_registration">
                 <input type="hidden" name="bef_event" value="'. $event_id .'">';
                 
@@ -151,7 +170,7 @@ function bef_form_shortcode( $args, $content="") {
                 </fieldset>
                 
                 <!-- Registration details: number of attendees, attendee names, shirt sizes -->
-                <fieldset>
+                <!--<fieldset>
                     <legend>Registration Details:</legend>
                     <p class="bef-input-container">
                         <label>Number of attendees</label><br />
@@ -183,12 +202,133 @@ function bef_form_shortcode( $args, $content="") {
                         <option value="4X">4X</option>
                     </select>
                 
-                </fieldset>
+                </fieldset>-->
                 
                 <!-- Choose role and amount -->
                 <fieldset>
-                    <legend>Choose Product and Role:</legend>
+                    <legend>Choose Products</legend>
+                    <label>Packages and Quantities</label>
                     <p class="bef-input-container">
+                        <table class="product-table">
+                            <!-- package 1 -->
+                            <tr>
+                                <td width="47%">Licensed Coach: Full BEF Conference, Awards Gala, Coach Conference</td>
+                                <td width="15%"><strong>$895.00</strong></td>
+                                <td width="8%"><select name="package-1" id="package-1">';
+                        for($count=0; $count<=25; $count++){
+                            $output .= '<option value='.$count.'>'.$count.'</option>';
+                        }                
+                        $output .='</select>
+                                </td>
+                                <td width="30%">
+                                    <div id="package-1-names">
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- package 2 -->
+                            <tr>
+                                <td>Licensed Coach: BEF Only</td>
+                                <td><strong>$895.00</strong></td>
+                                <td><select name="package-2" id="package-2">';
+                        for($count=0; $count<=25; $count++){
+                            $output .= '<option value='.$count.'>'.$count.'</option>';
+                        }                
+                        $output .='</select>
+                                </td>
+                                <td>
+                                    <div id="package-2-names">
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- package 3-->
+                             <tr>
+                                <td>Licensed Coach Social Ticket: Welcome Reception & Awards Gala</td>
+                                <td><strong>$150.00</strong></td>
+                                <td><select name="package-3" id="package-3">';
+                        for($count=0; $count<=25; $count++){
+                            $output .= '<option value='.$count.'>'.$count.'</option>';
+                        }                
+                        $output .='</select>
+                                </td>
+                                <td>
+                                    <div id="package-3-names">
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- package 4-->
+                             <tr>
+                                <td>Client/Other: Full BEF Conference & Awards Gala</td>
+                                <td><strong>$895.00</strong></td>
+                                <td><select name="package-4" id="package-4">';
+                        for($count=0; $count<=25; $count++){
+                            $output .= '<option value='.$count.'>'.$count.'</option>';
+                        }                
+                        $output .='</select>
+                                </td>
+                                <td>
+                                    <div id="package-4-names">
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                             <!-- package 5-->
+                             <tr>
+                                <td>Client/Other: Welcome Reception & Awards Gala</td>
+                                <td><strong>$150.00</strong></td>
+                                <td><select name="package-5" id="package-5">';
+                        for($count=0; $count<=25; $count++){
+                            $output .= '<option value='.$count.'>'.$count.'</option>';
+                        }                
+                        $output .='</select>
+                                </td>
+                                <td>
+                                    <div id="package-5-names">
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- package 6-->
+                             <tr>
+                                <td>Hall of Fame - FREE</td>
+                                <td><strong>$0.00</strong></td>
+                                <td><select name="package-6" id="package-6">';
+                        for($count=0; $count<=25; $count++){
+                            $output .= '<option value='.$count.'>'.$count.'</option>';
+                        }                
+                        $output .='</select>
+                                </td>
+                                <td>
+                                    <div id="package-6-names">
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- package 7-->
+                             <tr>
+                                <td>Sponsor Event (exhibit table for 2 days, logo visibility at event and website)</td>
+                                <td><strong>$1000.00</strong></td>
+                                <td><select name="package-7" id="package-7">';
+                        for($count=0; $count<=25; $count++){
+                            $output .= '<option value='.$count.'>'.$count.'</option>';
+                        }                
+                        $output .='</select>
+                                </td>
+                                <td>
+                                    <div id="package-7-names">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="4"><h5>Total amount: <span id="total-amount"></span></h5></td>
+                            </tr>
+                        </table>
+                    </p>
+                    
+                    
+                    <!--<p class="bef-input-container">
                         <label>Product and Role</label>
                         <select name="package">
                             <option value="">Choose One:</option>
@@ -200,7 +340,7 @@ function bef_form_shortcode( $args, $content="") {
                             <option value="Hall Of Fame|Hall Of Fame|0.00">Hall of Fame - FREE</option>
                             <option value="Sponsor|Sponsor|1000">Sponsor Event (exhibit table for 2 days, logo visibility at event and website) - $1000.00</option>
                         </select>
-                    </p>
+                    </p>-->
                 </fieldset>
                 
                 <!-- Billing info: cc information etc -->
@@ -292,7 +432,7 @@ function bef_form_shortcode( $args, $content="") {
 				
 				// completing our form html
 				$output .= '</p><p class="bef-input-container">
-					<input type="submit" name="bef_submit" value="Register!" />
+					<input type="submit" class="button" name="bef_submit" value="Register!" />
 				</p>
 			</form>
 		</div>
@@ -414,6 +554,12 @@ function bef_event_column_data( $column, $post_id ) {
 
 /* !4. EXTERNAL SCRIPTS */
 // 4.1
+// Include ACF
+/*
+include_once( plugin_dir_path( __FILE__ ) .'lib/advanced-custom-fields/acf.php' );
+*/
+
+// 4.2
 // hint: loads external files into PUBLIC website
 function bef_public_scripts() {
 	
@@ -426,12 +572,16 @@ function bef_public_scripts() {
 	wp_enqueue_style('bef-registration-css-public');
 }
 
+
 /* !5. ACTIONS */
 
 // 5.1
 // hint: saves bef registration data to an existing or new BEF registrant
 function bef_save_registration() {
-	
+    /*echo "<pre>";
+    print_r($_POST);
+    die();*/
+    
 	// setup default result data
 	$result = array(
 		'status' => 0,
@@ -447,11 +597,41 @@ function bef_save_registration() {
 	
 		// prepare registrant data
 		$registrant_data = array(
-			'fname'=> esc_attr( $_POST['bef_fname'] ),
-			'lname'=> esc_attr( $_POST['bef_lname'] ),
-			'email'=> esc_attr( $_POST['bef_email'] ),
+			'fname' => esc_attr( $_POST['bef_fname'] ),
+			'lname' => esc_attr( $_POST['bef_lname'] ),
+            'company' => esc_attr( $_POST['bef_company'] ),
+			'email' => esc_attr( $_POST['bef_email'] ),
+            'business_phone' => esc_attr( $_POST['bef_business_phone'] ),
+            'mobile_phone' => esc_attr( $_POST['bef_mobile_phone'] ),
+            'package-1' => esc_attr($_POST['package-1']),
+            'package-1-names' => array_map( 'esc_attr', $_POST['package-1-names'] ),
+            'package-2' => esc_attr( $_POST['package-2'] ),
+            'package-2-names' => array_map( 'esc_attr', $_POST['package-2-names'] ),
+            'package-3' => esc_attr( $_POST['package-3'] ),
+            'package-3-names' =>array_map( 'esc_attr', $_POST['package-3-names'] ),
+            'package-4' => esc_attr( $_POST['package-4'] ),
+            'package-4-names' => array_map( 'esc_attr', $_POST['package-4-names'] ),
+            'package-5' => esc_attr( $_POST['package-5'] ),
+            'package-5-names' => array_map( 'esc_attr', $_POST['package-5-names'] ),
+            'package-6' => esc_attr( $_POST['package-6'] ),
+            'package-6-names' => array_map( 'esc_attr', $_POST['package-6-names'] ),
+            'package-7' => esc_attr( $_POST['package-7'] ),
+            'package-7-names' => array_map( 'esc_attr', $_POST['package-7-names'] ),
+            'total-amount' => esc_attr( $_POST['total-amount'] ),
+            'bef_billing_address_1' => esc_attr( $_POST['bef_billing_address_1'] ),
+            'bef_billing_address_2' => esc_attr( $_POST['bef_billing_address_2'] ),
+            'bef_billing_city' => esc_attr( $_POST['bef_billing_city'] ),
+            'bef_billing_state' => esc_attr( $_POST['bef_billing_state'] ),
+            'bef_cc_num' => esc_attr( $_POST['bef_cc_num'] ),
+            'bef_cc_month' => esc_attr( $_POST['bef_cc_month'] ),
+            'bef_cc_year' => esc_attr( $_POST['bef_cc_year'] ),
+            'bef_cc_code' => esc_attr( $_POST['bef_cc_code'] ),
+            'bef_split_payment' => esc_attr( $_POST['bef_split_payment'] ),
 		);
-		
+       
+        //echo "<pre>";
+       // print_r($registrant_data);
+       // die();
         // setup our errors array
 		$errors = array();
         
@@ -542,11 +722,65 @@ function bef_save_registrant( $registrant_data ) {
 		
 		endif;
 		
+        // run payment
+        $payment_status = 'payment declined';
+        if($registrant_data['bef_split_payment'] == 'full_amount'){
+            // run credit card transaction
+            $response = charge_credit_card($registrant_data['total-amount'], 
+                                           $registrant_data['bef_cc_num'],
+                                           $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
+                                           $registrant_data['bef_cc_code']
+                                          );
+            if ($response != null){
+                $tresponse = $response->getTransactionResponse();  
+                if (($tresponse != null) && ($tresponse->getResponseCode()== \SampleCode\Constants::RESPONSE_OK) ) {
+                    $payment_status = $tresponse->getAuthCode() . " " . $tresponse->getTransId();
+                }
+                else {
+                    $payment_status = "Charge Credit Card ERROR :  Invalid response\n";
+                }
+            }
+            else {
+                $payment_status = "Charge Credit card Null response returned";
+            }
+        }
+        else {
+            // run subscription
+        }
+        
 		// add/update custom meta data
 		update_field(bef_get_acf_key('bef_fname'), $registrant_data['fname'], $registrant_id);
 		update_field(bef_get_acf_key('bef_lname'), $registrant_data['lname'], $registrant_id);
 		update_field(bef_get_acf_key('bef_email'), $registrant_data['email'], $registrant_id);
 		
+        update_field(bef_get_acf_key('bef_company'), $registrant_data['company'], $registrant_id);
+        update_field(bef_get_acf_key('bef_business_phone'), $registrant_data['business_phone'], $registrant_id);
+        update_field(bef_get_acf_key('bef_mobile_phone'), $registrant_data['mobile_phone'], $registrant_id);
+        update_field(bef_get_acf_key('package_1_quantity'), $registrant_data['package-1'], $registrant_id);
+        update_field(bef_get_acf_key('package_1_names'), implode('|', $registrant_data['package-1-names']), $registrant_id);
+        update_field(bef_get_acf_key('package_2_quantity'), $registrant_data['package-2'], $registrant_id);
+        update_field(bef_get_acf_key('package_2_names'), implode('|', $registrant_data['package-2-names']), $registrant_id);
+        update_field(bef_get_acf_key('package_3_quantity'), $registrant_data['package-3'], $registrant_id);
+        update_field(bef_get_acf_key('package_3_names'), implode('|', $registrant_data['package-3-names']), $registrant_id);
+        update_field(bef_get_acf_key('package_4_quantity'), $registrant_data['package-4'], $registrant_id);
+        update_field(bef_get_acf_key('package_4_names'), implode('|', $registrant_data['package-4-names']), $registrant_id);
+        update_field(bef_get_acf_key('package_5_quantity'), $registrant_data['package-5'], $registrant_id);
+        update_field(bef_get_acf_key('package_5_names'), implode('|', $registrant_data['package-5-names']), $registrant_id);
+        update_field(bef_get_acf_key('package_6_quantity'), $registrant_data['package-6'], $registrant_id);
+        update_field(bef_get_acf_key('package_6_names'), implode('|', $registrant_data['package-6-names']), $registrant_id);
+        update_field(bef_get_acf_key('package_7_quantity'), $registrant_data['package-7'], $registrant_id);
+        update_field(bef_get_acf_key('package_7_names'), implode('|', $registrant_data['package-7-names']), $registrant_id);
+        
+        update_field(bef_get_acf_key('total_amount'), $registrant_data['total-amount'], $registrant_id);
+        update_field(bef_get_acf_key('billing_address_1'), $registrant_data['bef_billing_address_1'], $registrant_id);
+        update_field(bef_get_acf_key('billing_address_2'), $registrant_data['bef_billing_address_2'], $registrant_id);
+        update_field(bef_get_acf_key('billing_city'), $registrant_data['bef_billing_city'], $registrant_id);
+        update_field(bef_get_acf_key('billing_state'), $registrant_data['bef_billing_state'], $registrant_id);
+        update_field(bef_get_acf_key('credit_card_last_four'), '1567', $registrant_id); // PLACEHOLDER
+        update_field(bef_get_acf_key('split_payment'), $registrant_data['bef_split_payment'], $registrant_id);
+        update_field(bef_get_acf_key('payment_status'), $payment_status, $registrant_id); // PLACEHOLDER
+
+        
 	} catch( Exception $e ) {
 		
 		// a php error occurred
@@ -723,10 +957,108 @@ function bef_get_acf_key( $field_name ) {
 		case 'bef_email':
 			$field_key = 'field_5769cacdceb92';
 			break;
-		case 'bef_registrations':
-			$field_key = 'field_5769caf3ceb93';
+            
+        case 'bef_company':
+			$field_key = 'field_5769ccf861eae';
+			break;
+            
+        case 'bef_business_phone':
+			$field_key = 'field_5769cd14251d9';
+			break;
+            
+        case 'bef_mobile_phone':
+			$field_key = 'field_5769cd50251da';
+			break;
+            
+        case 'package_1_quantity':
+			$field_key = 'field_576c55c1ece87';
+			break;
+            
+		case 'package_1_names':
+			$field_key = 'field_576c54a689e39';
 			break;
 		
+        case 'package_2_quantity':
+			$field_key = 'field_576c55db3271f';
+			break;
+            
+		case 'package_2_names':
+			$field_key = 'field_576c54e16da77';
+			break;  
+            
+        case 'package_3_quantity':
+			$field_key = 'field_576c55f1f8005';
+			break;
+            
+		case 'package_3_names':
+			$field_key = 'field_576c54f230b0b';
+			break;  
+            
+        case 'package_4_quantity':
+			$field_key = 'field_576c56052f615';
+			break;
+            
+		case 'package_4_names':
+			$field_key = 'field_576c5500d5716';
+			break;  
+            
+        case 'package_5_quantity':
+			$field_key = 'field_576c56181b5fc';
+			break;
+            
+		case 'package_5_names':
+			$field_key = 'field_576c551ee7fd4';
+			break;  
+            
+        case 'package_6_quantity':
+			$field_key = 'field_576c56323350f';
+			break;
+            
+		case 'package_6_names':
+			$field_key = 'field_576c5536873be';
+			break;  
+            
+        case 'package_7_quantity':
+			$field_key = 'field_576c563f0e245';
+			break;
+            
+		case 'package_7_names':
+			$field_key = 'field_576c554f03901';
+			break;  
+            
+        case 'total_amount':
+			$field_key = 'field_576c557c2f805';
+			break;  
+            
+        case 'billing_address_1':
+			$field_key = 'field_576c565c8cf8a';
+			break;  
+            
+        case 'billing_address_2':
+			$field_key = 'field_576c56834c170';
+			break;  
+            
+        case 'billing_city':
+			$field_key = 'field_576c56a05e4b8';
+			break;  
+            
+        case 'billing_state':
+			$field_key = 'field_576c56bfe23ff';
+			break;  
+            
+        case 'credit_card_last_four':
+			$field_key = 'field_576c56d77e610';
+			break;  
+            
+        case 'split_payment':
+			$field_key = 'field_576c56f5085d1';
+			break;  
+            
+        case 'payment_status':
+			$field_key = 'field_576c5722062c0';
+			break;  
+            
+        default: break;
 	}
 	
 	return $field_key;
@@ -765,12 +1097,51 @@ function bef_get_registrant_data( $registrant_id ) {
 	return $registrant_data;
 	
 }
+// 6.7
+// hint: charge_credit_card(), returns Authorize.net response
+function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code){
+    // Common setup for API credentials
+    $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
+    $merchantAuthentication->setName(\SampleCode\Constants::MERCHANT_LOGIN_ID);
+    $merchantAuthentication->setTransactionKey(\SampleCode\Constants::MERCHANT_TRANSACTION_KEY);
+    $refId = 'ref' . time();
+    
+    // Create the payment data for a credit card
+    $creditCard = new AnetAPI\CreditCardType();
+    $creditCard->setCardNumber($cc_num);
+    $creditCard->setExpirationDate($cc_exp);
+    $creditCard->setCardCode($cc_code);
+    $paymentOne = new AnetAPI\PaymentType();
+    $paymentOne->setCreditCard($creditCard);
+
+    $order = new AnetAPI\OrderType();
+    $order->setDescription("BEF Registration");
+    
+    //create a transaction
+    $transactionRequestType = new AnetAPI\TransactionRequestType();
+    $transactionRequestType->setTransactionType( "authCaptureTransaction"); 
+    $transactionRequestType->setAmount($amount);
+    $transactionRequestType->setOrder($order);
+    $transactionRequestType->setPayment($paymentOne);
+
+
+    $request = new AnetAPI\CreateTransactionRequest();
+    $request->setMerchantAuthentication($merchantAuthentication);
+    $request->setRefId( $refId);
+    $request->setTransactionRequest( $transactionRequestType);
+    $controller = new AnetController\CreateTransactionController($request);
+    $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);
+    
+    return $response;
+}
 
 /* !7. CUSTOM POST TYPES */
 
-
-
-
+// 7.1
+// registrants
+/*
+include_once( plugin_dir_path( __FILE__ ) . 'cpt/bef-registrant.php');
+*/
 /* !8. ADMIN PAGES */
 
 
