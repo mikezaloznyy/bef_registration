@@ -63,6 +63,10 @@ h3.bef-title {
 	margin: .5em 0;
 }
 
+.bef input {
+    min-width: 100%;
+}
+
 .bef input[type=submit] {
 	width: 100%;
 	margin: 0;
@@ -82,11 +86,15 @@ h3.bef-title {
 	background: #b9a030;
 }
 
-.bef input[type=text] {
+.bef input {
 	border: 1px solid rgba(51, 51, 51, 0.1);
-	background: #fafafa;
+	background: #fff;
 	border-radius: 2px;
 	margin-bottom: .5em;
+}
+
+.bef select {
+    margin-bottom: .5em;
 }
 
 #wrap-form-div {
@@ -98,3 +106,17 @@ h3.bef-title {
 /*.product-table table, tr, td {
     border: 1px !important;
 }*/
+
+.product-table {
+    min-width: 90%;
+}
+
+#product-table-box {
+    overflow-x: auto;
+}
+
+.required-fields {
+    font-weight: bold;
+    color: red;
+    font-style: italic;
+}

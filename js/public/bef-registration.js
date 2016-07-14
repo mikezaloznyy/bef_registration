@@ -7,7 +7,7 @@ jQuery(document).ready(function($){
 	// email capture action url
 	var email_capture_url = wpajax_url += '?action=bef_save_registration';
 	
-	/*$('form.bef-form').bind('submit',function(){
+	$('form.bef-form').bind('submit',function(){
 		
 		// get the jquery form object
 		$form = $(this);
@@ -52,21 +52,36 @@ jQuery(document).ready(function($){
 		// stop the form from submitting normally
 		return false;
 		
-	});*/
+	});
 	
     $('#package-1').bind('change',function(){
         qty = $( "#package-1 option:selected" ).text();
         $('#package-1-names').empty();
-        if(qty>0){
+        $('#package-1-shirts').empty();
+        $('#package-1-diets').empty();
+        /*if(qty>0){
             if(qty==1){
                 $('#package-1-names').append("<strong>Name:</strong>");
             }
             else{
                 $('#package-1-names').append("<strong>Names:</strong>");
             }
-        }
+        }*/
         for(count=0; count<qty; count++){
             $('#package-1-names').append("<input type=\"text\" name=\"package-1-names[]\" />");
+            $('#package-1-shirts').append("\
+                <select name=\"package-1-shirts[]\">\n\
+                    <option value=\"\"></option>\n\
+                    <option value=\"XS\">X-Small</option>\n\
+                    <option value=\"SM\">Small</option>\n\
+                    <option value=\"M\">Medium</option>\n\
+                    <option value=\"L\">Large</option>\n\
+                    <option value=\"XL\">X-Large</option>\n\
+                    <option value=\"XXL\">XX-Large</option>\n\
+                    <option value=\"3XL\">3X-Large</option>\n\
+                    <option value=\"4XL\">4X-Large</option>\n\
+                </select>");
+            $('#package-1-diets').append("<input type=\"text\" name=\"package-1-diets[]\" value=\"\" placeholder=\"Input dietary restrictions\" />");
         }
         
         update_total();
@@ -75,16 +90,31 @@ jQuery(document).ready(function($){
     $('#package-2').bind('change',function(){
         qty = $( "#package-2 option:selected" ).text();
         $('#package-2-names').empty();
-        if(qty>0){
+        $('#package-2-shirts').empty();
+        $('#package-2-diets').empty();
+        /*if(qty>0){
             if(qty==1){
                 $('#package-2-names').append("<strong>Name:</strong>");
             }
             else{
                 $('#package-2-names').append("<strong>Names:</strong>");
             }
-        }
+        }*/
         for(count=0; count<qty; count++){
             $('#package-2-names').append("<input type=\"text\" name=\"package-2-names[]\" />");
+            $('#package-2-shirts').append("\
+                <select name=\"package-2-shirts[]\">\n\
+                    <option value=\"\"></option>\n\
+                    <option value=\"XS\">X-Small</option>\n\
+                    <option value=\"SM\">Small</option>\n\
+                    <option value=\"M\">Medium</option>\n\
+                    <option value=\"L\">Large</option>\n\
+                    <option value=\"XL\">X-Large</option>\n\
+                    <option value=\"XXL\">XX-Large</option>\n\
+                    <option value=\"3XL\">3X-Large</option>\n\
+                    <option value=\"4XL\">4X-Large</option>\n\
+                </select>");
+            $('#package-2-diets').append("<input type=\"text\" name=\"package-2-diets[]\" value=\"\" placeholder=\"Input dietary restrictions\" />");
         }
         
         update_total();
@@ -93,16 +123,31 @@ jQuery(document).ready(function($){
     $('#package-3').bind('change',function(){
         qty = $( "#package-3 option:selected" ).text();
         $('#package-3-names').empty();
-        if(qty>0){
+        $('#package-3-shirts').empty();
+        $('#package-3-diets').empty();
+        /*if(qty>0){
             if(qty==1){
                 $('#package-3-names').append("<strong>Name:</strong>");
             }
             else{
                 $('#package-3-names').append("<strong>Names:</strong>");
             }
-        }
+        }*/
         for(count=0; count<qty; count++){
             $('#package-3-names').append("<input type=\"text\" name=\"package-3-names[]\" />");
+            $('#package-3-shirts').append("\
+                <select name=\"package-3-shirts[]\">\n\
+                    <option value=\"\"></option>\n\
+                    <option value=\"XS\">X-Small</option>\n\
+                    <option value=\"SM\">Small</option>\n\
+                    <option value=\"M\">Medium</option>\n\
+                    <option value=\"L\">Large</option>\n\
+                    <option value=\"XL\">X-Large</option>\n\
+                    <option value=\"XXL\">XX-Large</option>\n\
+                    <option value=\"3XL\">3X-Large</option>\n\
+                    <option value=\"4XL\">4X-Large</option>\n\
+                </select>");
+            $('#package-3-diets').append("<input type=\"text\" name=\"package-3-diets[]\" value=\"\" placeholder=\"Input dietary restrictions\" />");
         }
         
         update_total();
@@ -111,16 +156,31 @@ jQuery(document).ready(function($){
     $('#package-4').bind('change',function(){
         qty = $( "#package-4 option:selected" ).text();
         $('#package-4-names').empty();
-        if(qty>0){
+        $('#package-4-shirts').empty();
+        $('#package-4-diets').empty();
+        /*if(qty>0){
             if(qty==1){
                 $('#package-4-names').append("<strong>Name:</strong>");
             }
             else{
                 $('#package-4-names').append("<strong>Names:</strong>");
             }
-        }
+        }*/
         for(count=0; count<qty; count++){
             $('#package-4-names').append("<input type=\"text\" name=\"package-4-names[]\" />");
+            $('#package-4-shirts').append("\
+                <select name=\"package-4-shirts[]\">\n\
+                    <option value=\"\"></option>\n\
+                    <option value=\"XS\">X-Small</option>\n\
+                    <option value=\"SM\">Small</option>\n\
+                    <option value=\"M\">Medium</option>\n\
+                    <option value=\"L\">Large</option>\n\
+                    <option value=\"XL\">X-Large</option>\n\
+                    <option value=\"XXL\">XX-Large</option>\n\
+                    <option value=\"3XL\">3X-Large</option>\n\
+                    <option value=\"4XL\">4X-Large</option>\n\
+                </select>");
+            $('#package-4-diets').append("<input type=\"text\" name=\"package-4-diets[]\" value=\"\" placeholder=\"Input dietary restrictions\" />");
         }
         
         update_total();
@@ -129,74 +189,48 @@ jQuery(document).ready(function($){
     $('#package-5').bind('change',function(){
         qty = $( "#package-5 option:selected" ).text();
         $('#package-5-names').empty();
-        if(qty>0){
+        $('#package-5-shirts').empty();
+        $('#package-5-diets').empty();
+        /*if(qty>0){
             if(qty==1){
                 $('#package-5-names').append("<strong>Name:</strong>");
             }
             else{
                 $('#package-5-names').append("<strong>Names:</strong>");
             }
-        }
+        }*/
         for(count=0; count<qty; count++){
             $('#package-5-names').append("<input type=\"text\" name=\"package-5-names[]\" />");
+            $('#package-5-shirts').append("\
+                <select name=\"package-5-shirts[]\">\n\
+                    <option value=\"\"></option>\n\
+                    <option value=\"XS\">X-Small</option>\n\
+                    <option value=\"SM\">Small</option>\n\
+                    <option value=\"M\">Medium</option>\n\
+                    <option value=\"L\">Large</option>\n\
+                    <option value=\"XL\">X-Large</option>\n\
+                    <option value=\"XXL\">XX-Large</option>\n\
+                    <option value=\"3XL\">3X-Large</option>\n\
+                    <option value=\"4XL\">4X-Large</option>\n\
+                </select>");
+            $('#package-5-diets').append("<input type=\"text\" name=\"package-5-diets[]\" value=\"\" placeholder=\"Input dietary restrictions\" />");
         }
         
         update_total();
     })
-    
-    $('#package-6').bind('change',function(){
-        qty = $( "#package-6 option:selected" ).text();
-        $('#package-6-names').empty();
-        if(qty>0){
-            if(qty==1){
-                $('#package-6-names').append("<strong>Name:</strong>");
-            }
-            else{
-                $('#package-6-names').append("<strong>Names:</strong>");
-            }
-        }
-        for(count=0; count<qty; count++){
-            $('#package-6-names').append("<input type=\"text\" name=\"package-6-names[]\" />");
-        }
-        
-        update_total();
-    })
-    
-    $('#package-7').bind('change',function(){
-        qty = $( "#package-7 option:selected" ).text();
-        $('#package-7-names').empty();
-        if(qty>0){
-            if(qty==1){
-                $('#package-7-names').append("<strong>Name:</strong>");
-            }
-            else{
-                $('#package-7-names').append("<strong>Names:</strong>");
-            }
-        }
-        for(count=0; count<qty; count++){
-            $('#package-7-names').append("<input type=\"text\" name=\"package-7-names[]\" />");
-        }
-        
-        update_total();
-    })
-    
-    
+     
     function update_total(){
         qty1 = $( "#package-1 option:selected" ).text();
         qty2 = $( "#package-2 option:selected" ).text();
         qty3 = $( "#package-3 option:selected" ).text();
         qty4 = $( "#package-4 option:selected" ).text();
         qty5 = $( "#package-5 option:selected" ).text();
-        qty6 = $( "#package-6 option:selected" ).text();
-        qty7 = $( "#package-7 option:selected" ).text();
-        
+     
         $total = 895 * qty1 + 
-                 895 * qty2 +
-                 150 * qty3 +
-                 895 * qty4 +
-                 150 * qty5 +
-                 0 * qty6 +
-                 1000 * qty7;
+                 300 * qty2 +
+                 895 * qty3 +
+                 100 * qty4 +
+                 0 * qty5;
 
         $('#total-amount').empty();
         $('#total-amount').append("$" + $total.toFixed(2) + "<input type=\"hidden\" name=\"total-amount\" value=\"" + $total.toFixed(2) + "\">");
