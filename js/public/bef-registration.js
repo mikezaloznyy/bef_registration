@@ -57,6 +57,11 @@ jQuery(document).ready(function($){
                                         
 					// notify the user of success
 					alert(data.message);
+                                        alert(data.receipt);
+                                        
+                                        $('#total-amount').empty();
+                                        $('#payment-schedule').empty();
+                                        //window.location = "http://www.thebusinessexcellenceforums.com/receipt.php" + data.receipt;
 				} else {
 					// error
 					// begin building our error message text
@@ -270,9 +275,9 @@ jQuery(document).ready(function($){
         split_payment = $('#bef_split_payment').val(); 
         due_today = 0;
         
-        console.log("Split payment: " + split_payment);
-        console.log("Due Today: " + due_today);
-        console.log("Total: " + total);
+        //console.log("Split payment: " + split_payment);
+        //console.log("Due Today: " + due_today);
+        //console.log("Total: " + total);
         
         switch(split_payment){
             case 'full_amount': 

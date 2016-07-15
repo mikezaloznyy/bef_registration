@@ -129,6 +129,7 @@ function bef_form_shortcode( $args, $content="") {
     
 	// setup our output variable - the form html 
 	$output = '
+            <br/><br/>
             <div class="bef" id="wrap-form-div">
                 <form id="bef_form" name="bef_form" class="bef-form" method="post" action="/wordpress-plugin-dev/wp-admin/admin-ajax.php?action=bef_save_registration">
                     <input type="hidden" name="bef_event" value="'. $event_id .'">';
@@ -697,10 +698,10 @@ function bef_save_registration() {
         else:
         // IF there are no errors, proceed...
             // attempt to create/save registrant
-            $registrant_id = bef_save_registrant( $registrant_data );
+            $response = bef_save_registrant( $registrant_data );
 
             // IF registrant was saved successfully $registrant_id will be greater than 0
-            if( $registrant_id ):
+            if( $response['registrant_id'] ):
 
                 // IF $registrant_id already signed up for this event
                 /*if( bef_registrant_has_registration( $registrant_id, $event_id ) ):
@@ -712,18 +713,24 @@ function bef_save_registration() {
 
                 else: */
                     // save new registration
-                    $registration_saved = bef_add_registration( $registrant_id, $event_id );
+                    $registration_saved = bef_add_registration( $response['registrant_id'], $event_id );
 
                     // IF registration was saved successfully
                     if( $registration_saved ):
                         // registration saved!
                         $result['status']=1;
                         $result['message']='Registration saved';
+                        $result['receipt'] = 'Transaction ID: ' . $response['transaction_id'] . "\n" .
+                                             'Amount Charged: ' . $response['amount_charged'] . "\n" .
+                                             'Subscription ID: '. $response['subscription_id'] . "\n" .
+                                             'Payment Status: '. $response['payment_status'] . "\n" 
+                        ;
 
                     else: 			
                         // return detailed error
                         $result['error'] = 'Unable to save subscription.';
                     endif;
+                    
                 // endif;
             endif;
 	endif;
@@ -768,15 +775,18 @@ function bef_save_registrant( $registrant_data ) {
         $reg_date = date('Y-m-d H:i:s');
         $transaction_id = 'N/A';
         $subscription_id = 'N/A';
-                
+        $amount_charged = 0.00;
+        
         if($registrant_data['bef_split_payment'] == 'full_amount'){
             // run credit card transaction
             $payment_status = charge_credit_card($registrant_data['total-amount'], 
                                            $registrant_data['bef_cc_num'],
                                            $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
                                            $registrant_data['bef_cc_code'],
-                                           $transaction_id
+                                           $transaction_id,
+                                           $registrant_data
                                           );
+            $amount_charged = $registrant_data['total-amount'];
         }
         else {
             // run subscription
@@ -788,8 +798,11 @@ function bef_save_registrant( $registrant_data ) {
                                            $registrant_data['bef_cc_num'],
                                            $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
                                            $registrant_data['bef_cc_code'],
-                                            $transaction_id
+                                           $transaction_id,
+                                           $registrant_data
                                           );
+                $amount_charged = $partial_payment;
+                
                 // establish subscription
                 $pos = strpos($payment_status, 'ERROR');
                 
@@ -799,7 +812,8 @@ function bef_save_registrant( $registrant_data ) {
                                            $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
                                            $registrant_data['bef_cc_code'],
                                            $interval_length - 1,
-                                           $subscription_id
+                                           $subscription_id,
+                                           $registrant_data
                                           );
                 }
                 
@@ -856,7 +870,14 @@ function bef_save_registrant( $registrant_data ) {
 	}
 	
 	// return registrant_id
-	return $registrant_id;
+        $response = array(
+            'registrant_id'  => $registrant_id,
+            'amount_charged' => $amount_charged,
+            'transaction_id'       => $transaction_id,
+            'subscription_id'=> $subscription_id,
+            'payment_status' => $payment_status
+        );
+	return $response;
 	
 }
 
@@ -1214,7 +1235,7 @@ function bef_get_registrant_data( $registrant_id ) {
 }
 // 6.7
 // hint: charge_credit_card(), returns Authorize.net response
-function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code, &$transaction_id){
+function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code, &$transaction_id, $registrant_data){
     // Common setup for API credentials
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
     $merchantAuthentication->setName(\SampleCode\Constants::MERCHANT_LOGIN_ID);
@@ -1240,7 +1261,25 @@ function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code, &$transaction_i
     $transactionRequestType->setOrder($order);
     $transactionRequestType->setPayment($paymentOne);
 
-
+    $billTo = new AnetAPI\CustomerAddressType();
+    $billTo->setEmail($registrant_data['email']);  
+    $billTo->setPhoneNumber($registrant_data['mobile_phone']);    
+    $transactionRequestType->setBillTo($billTo);
+ 
+    $emailInfo = new AnetAPI\CustomerDataType();
+    $emailInfo->setEmail($registrant_data['email']); 
+    $transactionRequestType->setCustomer($emailInfo);
+  
+    $billTo = new AnetAPI\NameAndAddressType();
+    $billTo->setFirstName($registrant_data['fname']);
+    $billTo->setLastName($registrant_data['lname']);
+    $billTo->setCompany($registrant_data['company']);
+    $billTo->setAddress($registrant_data['bef_billing_address_1'] . ' '. $registrant_data['bef_billing_address_2']);
+    $billTo->setState($registrant_data['bef_billing_state']);
+    $billTo->setZip($registrant_data['bef_billing_zip']);
+    $billTo->setCity($registrant_data['bef_billing_city']);
+    $transactionRequestType->setShipTo($billTo);
+ 
     $request = new AnetAPI\CreateTransactionRequest();
     $request->setMerchantAuthentication($merchantAuthentication);
     $request->setRefId( $refId);
@@ -1267,7 +1306,7 @@ function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code, &$transaction_i
 
 // 6.8
 // hint: create_subscription(), returns Authorize.net response
-function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_length, &$subscription_id){
+function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_length, &$subscription_id, $registrant_data){
     // Common Set Up for API Credentials
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
     $merchantAuthentication->setName(\SampleCode\Constants::MERCHANT_LOGIN_ID);
@@ -1305,10 +1344,20 @@ function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_leng
     $subscription->setPayment($payment);
     
     $billTo = new AnetAPI\NameAndAddressType();
-    $billTo->setFirstName("BEF");
-    $billTo->setLastName("Attendee");
-    
+    $billTo->setFirstName($registrant_data['fname']);
+    $billTo->setLastName($registrant_data['lname']);
+    $billTo->setCompany($registrant_data['company']);
+    $billTo->setAddress($registrant_data['bef_billing_address_1'] . ' '. $registrant_data['bef_billing_address_2']);
+    $billTo->setState($registrant_data['bef_billing_state']);
+    $billTo->setZip($registrant_data['bef_billing_zip']);
+    $billTo->setCity($registrant_data['bef_billing_city']);
+      
     $subscription->setBillTo($billTo);
+
+    $customerType = new AnetAPI\CustomerType();
+    $customerType->setEmail($registrant_data['email']);  
+    $customerType->setPhoneNumber($registrant_data['mobile_phone']);    
+    $subscription->setCustomer($customerType);
 
     $request = new AnetAPI\ARBCreateSubscriptionRequest();
     $request->setmerchantAuthentication($merchantAuthentication);
