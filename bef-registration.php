@@ -611,7 +611,7 @@ function bef_save_registration() {
             'package-4-diets' => array_map( 'esc_attr', $_POST['package-4-diets'] ),
             'package-5-diets' => array_map( 'esc_attr', $_POST['package-5-diets'] ),
 	);
-       
+            
         // setup our errors array
 	$errors = array();
         
@@ -635,8 +635,59 @@ function bef_save_registration() {
             if( strlen( $registrant_data['email'] ) && !is_email( $registrant_data['email'] ) ) $errors['email'] = 'Email address must be valid.';
             if(!is_phone_number($registrant_data['business_phone'])) $errors['business_phone-2'] = 'Business phone number is invalid';  
             if(!is_phone_number($registrant_data['mobile_phone'])) $errors['mobile_phone-2'] = 'Mobile phone number is invalid';  
-            if(!is_cc_number($registrant_data['bef_cc_num'])) $errors['bef_cc_num-2'] = 'Credit card number is invalid';      
-
+            if(!is_cc_number($registrant_data['bef_cc_num'])) $errors['bef_cc_num-2'] = 'Credit card number is invalid';
+            
+            // make sure number of names supplied matches the quantity
+            $count1 = 0;
+            foreach($registrant_data['package-1-names'] as $value){
+                if(trim($value) != ''){
+                    $count1++;
+                }
+            }
+            if($count1 != $registrant_data['package-1']){
+                $errors['pack-1'] = 'Number of names supplied for package 1 (' .$count1. ') does not match the quantity of (' . $registrant_data['package-1'] . ')'; 
+            }
+            
+            $count2 = 0;
+            foreach($registrant_data['package-2-names'] as $value){
+                if(trim($value) != ''){
+                    $count2++;
+                }
+            }
+            if($count2 != $registrant_data['package-2']){
+                $errors['pack-2'] = 'Number of names supplied for package 2 (' .$count2. ') does not match the quantity of (' . $registrant_data['package-2'] . ')'; 
+            }
+            
+            $count3 = 0;
+            foreach($registrant_data['package-3-names'] as $value){
+                if(trim($value) != ''){
+                    $count3++;
+                }
+            }
+            if($count3 != $registrant_data['package-3']){
+                $errors['pack-3'] = 'Number of names supplied for package 3 (' .$count3. ') does not match the quantity of (' . $registrant_data['package-3'] . ')'; 
+            }
+            
+            $count4 = 0;
+            foreach($registrant_data['package-4-names'] as $value){
+                if(trim($value) != ''){
+                    $count4++;
+                }
+            }
+            if($count4 != $registrant_data['package-4']){
+                $errors['pack-4'] = 'Number of names supplied for package 4 (' .$count4. ') does not match the quantity of (' . $registrant_data['package-4'] . ')'; 
+            }
+            
+            $count5 = 0;
+            foreach($registrant_data['package-5-names'] as $value){
+                if(trim($value) != ''){
+                    $count5++;
+                }
+            }
+            if($count5 != $registrant_data['package-5']){
+                $errors['pack-5'] = 'Number of names supplied for package 5 (' .$count5. ') does not match the quantity of (' . $registrant_data['package-5'] . ')'; 
+            }
+            
         // IF there are errors
 	if( count($errors) ):
             // append errors to result structure for later use
@@ -1310,6 +1361,14 @@ function is_cc_number($value){
     if (preg_match($pattern, $value)) return true;
     
     return false;
+}
+
+function remove_empty($array) {
+  return array_filter($array, '_remove_empty_internal');
+}
+
+function _remove_empty_internal($value) {
+  return !empty($value) || $value === '';
 }
 /* !7. CUSTOM POST TYPES */
 
