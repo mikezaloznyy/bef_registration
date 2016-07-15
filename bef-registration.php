@@ -335,6 +335,11 @@ function bef_form_shortcode( $args, $content="") {
                         <label><span class="required-fields">*</span> Billing State</label>
                         <input type="text" name="bef_billing_state" placeholder="Billing State, e.g. NV" />
                     </p>
+                    
+                    <p class="bef-input-container">
+                        <label>Billing Zip</label>
+                        <input type="text" name="bef_billing_zip" placeholder="Zipcode e.g. 89148 (optional field)" />
+                    </p>
                 </fieldset>
                 
                 <!-- Credit card details -->
@@ -445,14 +450,13 @@ function bef_registrant_column_data( $column, $post_id ) {
 			// get the custom name data
 			$fname = get_field('bef_fname', $post_id );
 			$lname = get_field('bef_lname', $post_id );
-			$output .= $fname .' '. $lname;
+			$output .= $fname .' '. $lname . '';
 			break;
 		case 'email':
 			// get the custom email data
 			$email = get_field('bef_email', $post_id );
 			$output .= $email;
-			break;
-		
+			break;	
 	}
 	
 	// echo the output
@@ -587,6 +591,7 @@ function bef_save_registration() {
             'bef_billing_address_2' => esc_attr( $_POST['bef_billing_address_2'] ),
             'bef_billing_city' => esc_attr( $_POST['bef_billing_city'] ),
             'bef_billing_state' => esc_attr( $_POST['bef_billing_state'] ),
+            'bef_billing_zip' => esc_attr( $_POST['bef_billing_zip'] ),
             'bef_cc_num' => esc_attr( $_POST['bef_cc_num'] ),
             'bef_cc_month' => esc_attr( $_POST['bef_cc_month'] ),
             'bef_cc_year' => esc_attr( $_POST['bef_cc_year'] ),
@@ -626,9 +631,9 @@ function bef_save_registration() {
             
             /* Other types of validation */
             if( strlen( $registrant_data['email'] ) && !is_email( $registrant_data['email'] ) ) $errors['email'] = 'Email address must be valid.';
-            if(!is_phone_number($registrant_data['business_phone'])) $errors['business_phone'] = 'Business phone number is invalid';  
-            if(!is_phone_number($registrant_data['mobile_phone'])) $errors['mobile_phone'] = 'Mobile phone number is invalid';  
-            if(!is_cc_number($registrant_data['bef_cc_num'])) $errors['bef_cc_num'] = 'Credit card number is invalid';      
+            if(!is_phone_number($registrant_data['business_phone'])) $errors['business_phone-2'] = 'Business phone number is invalid';  
+            if(!is_phone_number($registrant_data['mobile_phone'])) $errors['mobile_phone-2'] = 'Mobile phone number is invalid';  
+            if(!is_cc_number($registrant_data['bef_cc_num'])) $errors['bef_cc_num-2'] = 'Credit card number is invalid';      
 
         // IF there are errors
 	if( count($errors) ):
@@ -707,12 +712,17 @@ function bef_save_registrant( $registrant_data ) {
 		
         // run payment
         $payment_status = 'payment declined';
+        $reg_date = date('Y-m-d H:i:s');
+        $transaction_id = 'N/A';
+        $subscription_id = 'N/A';
+                
         if($registrant_data['bef_split_payment'] == 'full_amount'){
             // run credit card transaction
             $payment_status = charge_credit_card($registrant_data['total-amount'], 
                                            $registrant_data['bef_cc_num'],
                                            $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
-                                           $registrant_data['bef_cc_code']
+                                           $registrant_data['bef_cc_code'],
+                                           $transaction_id
                                           );
         }
         else {
@@ -724,7 +734,8 @@ function bef_save_registrant( $registrant_data ) {
                 $payment_status = charge_credit_card($partial_payment, 
                                            $registrant_data['bef_cc_num'],
                                            $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
-                                           $registrant_data['bef_cc_code']
+                                           $registrant_data['bef_cc_code'],
+                                            $transaction_id
                                           );
                 // establish subscription
                 $pos = strpos($payment_status, 'ERROR');
@@ -734,7 +745,8 @@ function bef_save_registrant( $registrant_data ) {
                                            $registrant_data['bef_cc_num'],
                                            $registrant_data['bef_cc_month'].$registrant_data['bef_cc_year'],
                                            $registrant_data['bef_cc_code'],
-                                           $interval_length - 1
+                                           $interval_length - 1,
+                                           $subscription_id
                                           );
                 }
                 
@@ -764,10 +776,14 @@ function bef_save_registrant( $registrant_data ) {
         update_field(bef_get_acf_key('billing_address_2'), $registrant_data['bef_billing_address_2'], $registrant_id);
         update_field(bef_get_acf_key('billing_city'), $registrant_data['bef_billing_city'], $registrant_id);
         update_field(bef_get_acf_key('billing_state'), $registrant_data['bef_billing_state'], $registrant_id);
-        update_field(bef_get_acf_key('credit_card_last_four'), '1567', $registrant_id); // PLACEHOLDER
+        update_field(bef_get_acf_key('billing_zip'), $registrant_data['bef_billing_zip'], $registrant_id);
+        update_field(bef_get_acf_key('credit_card_last_four'), substr($registrant_data['bef_cc_num'], -4), $registrant_id); 
         update_field(bef_get_acf_key('split_payment'), $registrant_data['bef_split_payment'], $registrant_id);
-        update_field(bef_get_acf_key('payment_status'), $payment_status, $registrant_id); // PLACEHOLDER
-        update_field(bef_get_acf_key('who_is_your_coach'), $registrant_data['who_is_your_coach'], $registrant_id); // PLACEHOLDER
+        update_field(bef_get_acf_key('payment_status'), $payment_status, $registrant_id); 
+        update_field(bef_get_acf_key('reg_date'), $reg_date, $registrant_id); 
+        update_field(bef_get_acf_key('transaction_id'), $transaction_id, $registrant_id); 
+        update_field(bef_get_acf_key('subscription_id'), $subscription_id, $registrant_id); 
+        update_field(bef_get_acf_key('who_is_your_coach'), $registrant_data['who_is_your_coach'], $registrant_id); 
         
         update_field(bef_get_acf_key('package_1_shirt_sizes'), implode('|', $registrant_data['package-1-shirts']), $registrant_id);
         update_field(bef_get_acf_key('package_2_shirt_sizes'), implode('|', $registrant_data['package-2-shirts']), $registrant_id);
@@ -966,7 +982,7 @@ function bef_get_acf_key( $field_name ) {
             break;
 
         case 'bef_mobile_phone':
-            $field_key = 'field_5769cd50251da';
+            $field_key = 'field_5787bba95db78';
             break;
 
         case 'package_1_quantity':
@@ -1028,6 +1044,10 @@ function bef_get_acf_key( $field_name ) {
         case 'billing_state':
             $field_key = 'field_576c56bfe23ff';
             break;  
+        
+        case 'billing_zip':
+            $field_key = 'field_576c56bfe23aa';
+        break;  
 
         case 'credit_card_last_four':
             $field_key = 'field_576c56d77e610';
@@ -1041,6 +1061,18 @@ function bef_get_acf_key( $field_name ) {
             $field_key = 'field_576c5722062c0';
             break;  
 
+        case 'reg_date':
+            $field_key = 'field_576c5722062aa';
+            break; 
+        
+        case 'transaction_id':
+            $field_key = 'field_576c5722062bb';
+            break; 
+        
+        case 'subscription_id':
+            $field_key = 'field_576c5722062dd';
+            break; 
+        
         case 'who_is_your_coach':
             $field_key = 'field_5786c77b4ea92';
             break; 
@@ -1084,6 +1116,11 @@ function bef_get_acf_key( $field_name ) {
         case 'package_5_shirt_sizes':
             $field_key = 'field_5787ab643122d';
             break; 
+        
+        case 'bef_registrations':
+            $field_key = 'field_5769caf3ceb93';
+            break;
+        
         default: break;
     }
 
@@ -1124,7 +1161,7 @@ function bef_get_registrant_data( $registrant_id ) {
 }
 // 6.7
 // hint: charge_credit_card(), returns Authorize.net response
-function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code){
+function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code, &$transaction_id){
     // Common setup for API credentials
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
     $merchantAuthentication->setName(\SampleCode\Constants::MERCHANT_LOGIN_ID);
@@ -1145,6 +1182,7 @@ function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code){
     //create a transaction
     $transactionRequestType = new AnetAPI\TransactionRequestType();
     $transactionRequestType->setTransactionType( "authCaptureTransaction"); 
+    $amount = number_format((float)$amount , 2, '.', ''); 
     $transactionRequestType->setAmount($amount);
     $transactionRequestType->setOrder($order);
     $transactionRequestType->setPayment($paymentOne);
@@ -1156,11 +1194,13 @@ function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code){
     $request->setTransactionRequest( $transactionRequestType);
     $controller = new AnetController\CreateTransactionController($request);
     $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);
+    //$response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
     
     if ($response != null){
         $tresponse = $response->getTransactionResponse();  
         if (($tresponse != null) && ($tresponse->getResponseCode()== \SampleCode\Constants::RESPONSE_OK) ) {
             $payment_status = $tresponse->getAuthCode() . " " . $tresponse->getTransId();
+            $transaction_id = $tresponse->getTransId();
         }
         else {
             $payment_status = "ERROR: Charge Credit Card ERROR :  Invalid response\n";
@@ -1174,7 +1214,7 @@ function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code){
 
 // 6.8
 // hint: create_subscription(), returns Authorize.net response
-function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_length){
+function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_length, &$subscription_id){
     // Common Set Up for API Credentials
     $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();
     $merchantAuthentication->setName(\SampleCode\Constants::MERCHANT_LOGIN_ID);
@@ -1197,6 +1237,7 @@ function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_leng
     $paymentSchedule->setTrialOccurrences("0");
                                           
     $subscription->setPaymentSchedule($paymentSchedule);
+    $amount = number_format((float)$amount , 2, '.', '');  
     $subscription->setAmount($amount);
     $subscription->setTrialAmount("0");                                      
 
@@ -1223,8 +1264,10 @@ function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_leng
     $controller = new AnetController\ARBCreateSubscriptionController($request);
 
     $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);   
+ //   $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
     if (($response != null) && ($response->getMessages()->getResultCode() == "Ok") )
     {
+        $subscription_id = $response->getSubscriptionId();
         $payment_status = "SUCCESS: Subscription ID : " . $response->getSubscriptionId() . "\n";
      }
     else
@@ -1270,9 +1313,7 @@ function is_cc_number($value){
 
 // 7.1
 // registrants
-/*
-include_once( plugin_dir_path( __FILE__ ) . 'cpt/bef-registrant.php');
-*/
+//include_once( plugin_dir_path( __FILE__ ) . 'cpt/bef-registrant.php');
 /* !8. ADMIN PAGES */
 
 

@@ -2,8 +2,16 @@
 jQuery(document).ready(function($){
 	
 	// setup our wp ajax URL
-	var wpajax_url = document.location.protocol + '//' + document.location.host + '/wordpress-plugin-dev/wp-admin/admin-ajax.php';
-	
+        
+            // LOCAL:
+        if (document.location.hostname == "localhost"){
+            var wpajax_url = document.location.protocol + '//' + document.location.host + '/wordpress-plugin-dev/wp-admin/admin-ajax.php';
+        }
+        else {
+            // LIVE:
+            var wpajax_url = document.location.protocol + '//' + document.location.host + '/wp-admin/admin-ajax.php';
+        }
+        
 	// email capture action url
 	var email_capture_url = wpajax_url += '?action=bef_save_registration';
 	
@@ -27,6 +35,26 @@ jQuery(document).ready(function($){
 					// success
 					// reset the form
 					$form[0].reset();
+                                        $('#package-1-names').empty();
+                                        $('#package-1-shirts').empty();
+                                        $('#package-1-diets').empty();
+
+                                        $('#package-2-names').empty();
+                                        $('#package-2-shirts').empty();
+                                        $('#package-2-diets').empty();
+
+                                        $('#package-3-names').empty();
+                                        $('#package-3-shirts').empty();
+                                        $('#package-3-diets').empty();
+
+                                        $('#package-4-names').empty();
+                                        $('#package-4-shirts').empty();
+                                        $('#package-4-diets').empty();
+
+                                        $('#package-5-names').empty();
+                                        $('#package-5-shirts').empty();
+                                        $('#package-5-diets').empty();
+                                        
 					// notify the user of success
 					alert(data.message);
 				} else {
@@ -233,6 +261,10 @@ jQuery(document).ready(function($){
                  0 * qty5;
 
         $('#total-amount').empty();
+        
+        // TEST
+    //$total = 1.01;
+    
         $('#total-amount').append("$" + $total.toFixed(2) + "<input type=\"hidden\" name=\"total-amount\" value=\"" + $total.toFixed(2) + "\">");
     
         return $total.toFixed(2);
@@ -242,5 +274,24 @@ jQuery(document).ready(function($){
         var form = $('form.bef-form'); 
         // let the browser natively reset defaults
         form[0].reset();
+        $('#package-1-names').empty();
+        $('#package-1-shirts').empty();
+        $('#package-1-diets').empty();
+        
+        $('#package-2-names').empty();
+        $('#package-2-shirts').empty();
+        $('#package-2-diets').empty();
+        
+        $('#package-3-names').empty();
+        $('#package-3-shirts').empty();
+        $('#package-3-diets').empty();
+        
+        $('#package-4-names').empty();
+        $('#package-4-shirts').empty();
+        $('#package-4-diets').empty();
+        
+        $('#package-5-names').empty();
+        $('#package-5-shirts').empty();
+        $('#package-5-diets').empty();
     });
 });
