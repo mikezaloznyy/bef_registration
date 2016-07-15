@@ -14,9 +14,12 @@ jQuery(document).ready(function($){
         
 	// email capture action url
 	var email_capture_url = wpajax_url += '?action=bef_save_registration';
-	
+	//$('input:submit').click(function(){
+        //    $('input:submit').attr("disabled", true);	
+        //});
+
 	$('form.bef-form').bind('submit',function(){
-		
+		$('input:submit').attr("disabled", true);
 		// get the jquery form object
 		$form = $(this);
 		
@@ -35,6 +38,7 @@ jQuery(document).ready(function($){
 					// success
 					// reset the form
 					$form[0].reset();
+                                        $('input:submit').attr("disabled", false);
                                         $('#package-1-names').empty();
                                         $('#package-1-shirts').empty();
                                         $('#package-1-diets').empty();
@@ -61,6 +65,7 @@ jQuery(document).ready(function($){
                                         
                                         $('#total-amount').empty();
                                         $('#payment-schedule').empty();
+                                        
                                         //window.location = "http://www.thebusinessexcellenceforums.com/receipt.php" + data.receipt;
 				} else {
 					// error
@@ -74,6 +79,7 @@ jQuery(document).ready(function($){
 					});
 					// notify the user of the error
 					alert( msg );
+                                        $('input:submit').attr("disabled", false);
 				}
 			},
 			'error': function( jqXHR, textStatus, errorThrown ) {
@@ -268,7 +274,7 @@ jQuery(document).ready(function($){
         $('#total-amount').empty();
         $('#payment-schedule').empty();
         // TEST
-    //$total = 1.01;
+        // total = 6.00;
     
         $('#total-amount').append("$" + total.toFixed(2) + "<input type=\"hidden\" name=\"total-amount\" value=\"" + total.toFixed(2) + "\">");
         
@@ -321,6 +327,7 @@ jQuery(document).ready(function($){
         var form = $('form.bef-form'); 
         // let the browser natively reset defaults
         form[0].reset();
+        $('input:submit').attr("disabled", false);
         $('#package-1-names').empty();
         $('#package-1-shirts').empty();
         $('#package-1-diets').empty();

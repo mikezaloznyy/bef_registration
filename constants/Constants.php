@@ -6,12 +6,14 @@ class Constants
 	//merchant credentials
 	//const MERCHANT_LOGIN_ID = "5KP3u95bQpv";
 	//const MERCHANT_TRANSACTION_KEY = "4Ktq966gC55GAX7S";
-	
-    const MERCHANT_LOGIN_ID = "5BGq86kTf"; 
-  const MERCHANT_TRANSACTION_KEY = '9539MdtYL4Z49dg2';
+
+  // Sandbox Credentials
+  //  const MERCHANT_LOGIN_ID = "5BGq86kTf"; 
+  //const MERCHANT_TRANSACTION_KEY = '9539MdtYL4Z49dg2';
     
-     // const MERCHANT_LOGIN_ID = "7ss8Q9Pc"; 
-     // const MERCHANT_TRANSACTION_KEY = '3k7YQv3wV55nkH8f';
+       // LIVE Credentials
+       const MERCHANT_LOGIN_ID = "7ss8Q9Pc"; 
+       const MERCHANT_TRANSACTION_KEY = '3k7YQv3wV55nkH8f';
     
 	//credit card fields
 	const CREDIT_CARD_NUMBER = "4111111111111111";

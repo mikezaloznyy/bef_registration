@@ -187,7 +187,7 @@ function bef_form_shortcode( $args, $content="") {
                                         <th width="15%">Product</th>
                                         <th>Price</th>
                                         <th>Quantity</th>
-                                        <th>Attendees Names</th>
+                                        <th>Attendees Names (First & Last)</th>
                                         <th>Shirt Sizes</th>
                                         <th>Dietary Restrictions</th>
                                     </tr>
@@ -414,7 +414,7 @@ function bef_form_shortcode( $args, $content="") {
 				
 				// completing our form html
 				$output .= '</p><p class="bef-input-container">
-					<input type="submit" class="button" name="bef_submit" value="Register!" />
+					<input type="submit" class="button" name="bef_submit" id="bef_submit" value="Register!" />
 				</p>
 			</form>
 		</div>
@@ -1285,8 +1285,8 @@ function charge_credit_card($amount, $cc_num, $cc_exp, $cc_code, &$transaction_i
     $request->setRefId( $refId);
     $request->setTransactionRequest( $transactionRequestType);
     $controller = new AnetController\CreateTransactionController($request);
-    $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);
-    //$response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+    //$response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);
+    $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
     
     if ($response != null){
         $tresponse = $response->getTransactionResponse();  
@@ -1365,8 +1365,8 @@ function create_subscription($amount, $cc_num, $cc_exp, $cc_code, $interval_leng
     $request->setSubscription($subscription);
     $controller = new AnetController\ARBCreateSubscriptionController($request);
 
-    $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);   
- //   $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
+    //$response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::SANDBOX);   
+    $response = $controller->executeWithApiResponse( \net\authorize\api\constants\ANetEnvironment::PRODUCTION);
     if (($response != null) && ($response->getMessages()->getResultCode() == "Ok") )
     {
         $subscription_id = $response->getSubscriptionId();
