@@ -390,14 +390,16 @@ function bef_form_shortcode( $args, $content="") {
                     <p class="bef-input-container">
                         <label><span class="required-fields">*</span> Split Payment?<br/>
                         <small>First payment charged today if split.<br/>
-                        Recurring payments are charged on the first of the month.</small></label><br/>
-                        <select name="bef_split_payment">
+                        </small></label><br/>
+                        <select name="bef_split_payment" id="bef_split_payment">
                             <option value="full_amount">Do not split - pay full amount</option>
                             <option value="2">Split into two monthly payments</option>
                             <option value="3">Split into three monthly payments</option>
                             <option value="4">Split into four monthly payments</option>
                         </select>
                     </p>
+                    
+                    <p id="payment-schedule"></p>
                 </fieldset>
                 ';
 				
@@ -650,14 +652,14 @@ function bef_save_registration() {
             if( $registrant_id ):
 
                 // IF $registrant_id already signed up for this event
-                if( bef_registrant_has_registration( $registrant_id, $event_id ) ):
+                /*if( bef_registrant_has_registration( $registrant_id, $event_id ) ):
                     // get event object
                     $event = get_post( $event_id );
 
                     // return detailed error
                     $result['message'] .= esc_attr( $registrant_data['email'] .' is already registered for '. $event->post_title .'.');
 
-                else: 
+                else: */
                     // save new registration
                     $registration_saved = bef_add_registration( $registrant_id, $event_id );
 
@@ -671,7 +673,7 @@ function bef_save_registration() {
                         // return detailed error
                         $result['error'] = 'Unable to save subscription.';
                     endif;
-                endif;
+                // endif;
             endif;
 	endif;
 		
@@ -692,8 +694,8 @@ function bef_save_registrant( $registrant_data ) {
 	$registrant_id = 0;
 	
 	try {
-		
-		$registrant_id = bef_get_registrant_id( $registrant_data['email'] );
+		$registrant_id = null;
+		//$registrant_id = bef_get_registrant_id( $registrant_data['email'] );
 		
 		// IF the registrant does not already exists...
 		if( !$registrant_id ):

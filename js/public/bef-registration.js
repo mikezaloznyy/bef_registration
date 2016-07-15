@@ -254,21 +254,63 @@ jQuery(document).ready(function($){
         qty4 = $( "#package-4 option:selected" ).text();
         qty5 = $( "#package-5 option:selected" ).text();
      
-        $total = 895 * qty1 + 
+        total = 895 * qty1 + 
                  300 * qty2 +
                  895 * qty3 +
                  100 * qty4 +
                  0 * qty5;
 
         $('#total-amount').empty();
-        
+        $('#payment-schedule').empty();
         // TEST
     //$total = 1.01;
     
-        $('#total-amount').append("$" + $total.toFixed(2) + "<input type=\"hidden\" name=\"total-amount\" value=\"" + $total.toFixed(2) + "\">");
-    
-        return $total.toFixed(2);
+        $('#total-amount').append("$" + total.toFixed(2) + "<input type=\"hidden\" name=\"total-amount\" value=\"" + total.toFixed(2) + "\">");
+        
+        split_payment = $('#bef_split_payment').val(); 
+        due_today = 0;
+        
+        console.log("Split payment: " + split_payment);
+        console.log("Due Today: " + due_today);
+        console.log("Total: " + total);
+        
+        switch(split_payment){
+            case 'full_amount': 
+                                due_today = total.toFixed(2);
+                                due_today = parseFloat(due_today);
+                                $('#payment-schedule').append("<h4 style='color: red'>Due today: $" + due_today.toFixed(2) +"</h4>");
+                                break;
+                                
+            case '2': 
+                                due_today = total.toFixed(2) / 2;
+                                due_today = parseFloat(due_today);
+                                $('#payment-schedule').append("<h4 style='color: red'>Due today: $" + due_today.toFixed(2) +"</h4>");
+                                $('#payment-schedule').append("<h4>Due in one month: $" + due_today.toFixed(2) +"</h4>");
+                                
+                                break;
+                            
+            case '3':           due_today = total.toFixed(2) / 3;
+                                due_today = parseFloat(due_today);
+                                $('#payment-schedule').append("<h4 style='color: red'>Due today: $" + due_today.toFixed(2) +"</h4>");
+                                $('#payment-schedule').append("<h4>Due in one month: $" + due_today.toFixed(2) +"</h4>");
+                                $('#payment-schedule').append("<h4>Due in two months: $" + due_today.toFixed(2) +"</h4>");
+                                break; 
+                                
+            case '4':           due_today = total.toFixed(2) / 4;
+                                due_today = parseFloat(due_today);
+                                $('#payment-schedule').append("<h4 style='color: red'>Due today: $" + due_today.toFixed(2) +"</h4>");
+                                $('#payment-schedule').append("<h4>Due in one month: $" + due_today.toFixed(2) +"</h4>");
+                                $('#payment-schedule').append("<h4>Due in two months: $" + due_today.toFixed(2) +"</h4>");
+                                $('#payment-schedule').append("<h4>Due in three months: $" + due_today.toFixed(2) +"</h4>");
+                                break; 
+        }
+        
+        return total.toFixed(2);
     }
+    
+    $('#bef_split_payment').bind('change',function(){
+         update_total()
+    })
     
     $(window).bind("pageshow", function() {
         var form = $('form.bef-form'); 
